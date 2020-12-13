@@ -34,17 +34,7 @@
 
     <!-- 未登录头部 -->
     <div v-else class="header not-login">
-      <div
-        class="login-btn"
-        @click="
-          $router.push({
-            name: 'login',
-            query: {
-              redirect: '/my',
-            },
-          })
-        "
-      >
+      <div class="login-btn" @click="$router.push('/login')">
         <img class="mobile-img" src="~@/assets/mobile.png" alt="" />
         <span class="text">登录 / 注册</span>
       </div>
@@ -125,6 +115,7 @@ export default {
         this.userInfo = data.data;
       } catch (err) {
         this.$toast("获取数据失败，请稍后重试");
+        console.log(err);
       }
     },
   },
