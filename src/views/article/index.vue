@@ -64,6 +64,46 @@
           ref="article-content"
         ></div>
         <van-divider>正文结束</van-divider>
+        <!-- 文章评论列表 -->
+        <comment-list
+          :source="article.art_id"
+          @onload-success="totalCommentCount = $event.total_count"
+        />
+        <!-- /文章评论列表 -->
+        <!-- 底部区域 -->
+        <div class="article-bottom">
+          <van-button
+            class="comment-btn"
+            type="default"
+            round
+            size="small"
+            @click="isPostShow = true"
+            >写评论</van-button
+          >
+          <van-icon name="comment-o" info="123" color="#777" />
+          <!-- <van-icon color="#777" name="star-o" /> -->
+          <collect-article
+            class="btn-item"
+            v-model="article.is_collected"
+            :article-id="article.art_id"
+          />
+          <!-- <van-icon color="#777" name="good-job-o" /> -->
+          <like-article
+            class="btn-item"
+            v-model="article.attitude"
+            :articleId="article.art_id"
+          />
+          <van-icon name="share" color="#777777"></van-icon>
+        </div>
+        <!-- /底部区域 -->
+        <!-- 发布评论 -->
+        <van-popup v-model="isPostShow" position="bottom">
+          <comment-post
+            :target="article.art_id"
+            @post-success="onPostSuccess"
+          />
+        </van-popup>
+        <!-- 发布评论 -->
       </div>
       <!-- /加载完成-文章详情 -->
 
@@ -82,28 +122,18 @@
       </div>
       <!-- /加载失败：其它未知错误（例如网络原因或服务端异常） -->
     </div>
-
-    <!-- 底部区域 -->
-    <div class="article-bottom" v-if="article.title">
-      <van-button class="comment-btn" type="default" round size="small"
-        >写评论</van-button
-      >
-      <van-icon name="comment-o" info="123" color="#777" />
-      <!-- <van-icon color="#777" name="star-o" /> -->
-      <collect-article
-        class="btn-item"
-        v-model="article.is_collected"
-        :article-id="article.art_id"
+    <van-popup v-model="isReplyShow" position="bottom" style="height: 100%;">
+      <!--
+        v-if 条件渲染
+          true：渲染元素节点
+          false：不渲染
+       -->
+      <comment-reply
+        v-if="isReplyShow"
+        :comment="currentComment"
+        @close="isReplyShow = false"
       />
-      <!-- <van-icon color="#777" name="good-job-o" /> -->
-      <like-article
-        class="btn-item"
-        v-model="article.attitude"
-        :articleId="article.art_id"
-      />
-      <van-icon name="share" color="#777777"></van-icon>
-    </div>
-    <!-- /底部区域 -->
+    </van-popup>
   </div>
 </template>
 
@@ -113,6 +143,9 @@ import { ImagePreview } from "vant";
 import FollowUser from "@/components/follow-user";
 import CollectArticle from "@/components/collect-article";
 import LikeArticle from "@/components/like-article";
+import CommentList from "./components/comment-list";
+import CommentPost from "./components/comment-post";
+import CommentReply from "./components/comment-reply";
 
 export default {
   name: "ArticleIndex",
@@ -120,6 +153,15 @@ export default {
     FollowUser,
     CollectArticle,
     LikeArticle,
+    CommentList,
+    CommentPost,
+    CommentReply,
+  },
+  props: {
+    articleId: {
+      type: [Number, String, Object],
+      required: true,
+    },
   },
   props: {
     articleId: {
@@ -133,6 +175,10 @@ export default {
       Loading: true,
       errStatus: 0,
       followLoading: false,
+      totalCommentCount: 0,
+      isPostShow: false, // 控制发布评论的显示状态
+      isReplyShow: false,
+      commentList: [], // 评论列表
     };
   },
   computed: {},
@@ -160,7 +206,7 @@ export default {
           this.errStatus = 404;
         }
         // console.log(err.response);
-        this.$toast("获取失败");
+        // this.$toast("获取失败");
       }
       this.Loading = false;
     },
@@ -181,6 +227,19 @@ export default {
           });
         };
       });
+    },
+    onPostSuccess(data) {
+      // 关闭弹出层
+      this.isPostShow = false;
+      // 将发布内容显示到列表顶部
+      this.commentList.unshift(data.new_obj);
+    },
+
+    onReplyClick(comment) {
+      this.currentComment = comment;
+
+      // 显示评论回复弹出层
+      this.isReplyShow = true;
     },
   },
 };

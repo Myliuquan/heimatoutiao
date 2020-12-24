@@ -15,7 +15,6 @@ export default {
   name: "LikeArticle",
   props: {
     value: {
-      type: Number,
       required: true,
     },
     articleId: {
@@ -25,6 +24,9 @@ export default {
   },
   data() {
     return { loading: false };
+  },
+  created() {
+    console.log(this.value, 2333333);
   },
   methods: {
     async onCollect() {
